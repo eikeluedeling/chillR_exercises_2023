@@ -1,85 +1,201 @@
-#install.packages("chillR")
 library(chillR)
-library(knitr)
-library(pander)
-library(kableExtra)
 
-kable(Winters_hours_gaps[1:10,])  %>%
-  kable_styling("striped", position = "left",font_size = 10)
+?"chillR-package"
 
-hourtemps<-Winters_hours_gaps[,c("Year","Month","Day","Hour","Temp")]
+?chilling
 
-hourtemps[3,]
-hourtemps[3,"Temp"]
-hourtemps$Temp[1:5]
-hourtemps[1:5,]
+Winters_hours_gaps[1:5,6]
 
-1==2
-1==1
-c(1,2,3)>2
+Winters_hours_gaps[,"Temp"]
 
-a<-1
-b<-2
-c<-3
-c(a,b,c)>=2
-c(a,b,c)>=2&c(a,b,c)<3
+c(1,2,3,4,5)
 
+c("A","Hi","rabbit")
 
+Winters_hours_gaps[,c("Year","Month","Day","Hour","Temp")]
 
-hourtemps[,"Chilling_Hour"]<-hourtemps$Temp>=0&hourtemps$Temp<=7.2
+hourtemps <- Winters_hours_gaps[,c("Year","Month","Day","Hour","Temp")]
 
-hourtemps[13:20,]
+hourtemps
 
-sum(hourtemps$Chilling_Hour[13:20])
+head(hourtemps)
+tail(hourtemps)
 
+hourtemps[,"Temp"]
+hourtemps$Temp
 
-Start_Date<-which(hourtemps$Year==2008 &
-                  hourtemps$Month==10 &
-                  hourtemps$Day==1 & 
-                  hourtemps$Hour==12)
-End_Date<-which(hourtemps$Year==2008 &
-                hourtemps$Month==10 &
-                hourtemps$Day==31 &
-                hourtemps$Hour==12)
+hourtemps[,"MyColumn"]<-NA
 
-sum(hourtemps$Chilling_Hour[Start_Date:End_Date])
+hourtemps <- hourtemps[,c("Year","Month","Day","Hour","Temp")]
 
+0 < 1
+0 > 1
+0 == 1
+0 <= 1
 
-CH<-function(hourtemps)
+a <- 5
+
+a > 3
+
+a <- c(-1,-2,0,1,2,3,4,5,8,1,4,7)
+
+a > 0
+
+a <= 7.2
+
+a > 0 & a <= 7.2
+
+hourtemps$Temp > 0 & hourtemps$Temp <= 7.2
+
+hourtemps[,"CH"] <- hourtemps$Temp > 0 &
+  hourtemps$Temp <= 7.2
+
+head(hourtemps)
+
+sum(hourtemps$CH)
+
+sum(hourtemps$CH[100:200])
+
+hourtemps[hourtemps$Year==2008 & hourtemps$Month==3 & hourtemps$Day==10 & hourtemps$Hour==0, ] 
+hourtemps[hourtemps$Year==2008 & hourtemps$Month==4 & hourtemps$Day==10 & hourtemps$Hour==0, ]
+
+Start_row<-which(hourtemps$Year==2008 & hourtemps$Month==3 & hourtemps$Day==10 & hourtemps$Hour==0)
+End_row<-which(hourtemps$Year==2008 & hourtemps$Month==4 & hourtemps$Day==10 & hourtemps$Hour==0)
+
+sum(hourtemps$CH[Start_row:End_row])
+
+CH <- function(value) plot(value)
+
+CH(c(7,6,4))
+
+CH <- function()
 {
-  hourtemps[,"Chilling_Hour"]<-hourtemps$Temp>=0&hourtemps$Temp<=7.2
-  return(hourtemps)
-}
-
-CH(hourtemps)[13:20,]  # again restricted to rows 13-20,
-                       # because we don't want to see the whole output here.
-
-sum_CH<-function(hourtemps, Start_YEARMODA, End_YEARMODA)
-{
-  Start_Year<-trunc(Start_YEARMODA/10000) # "trunc" removes all decimals
-  Start_Month<-trunc((Start_YEARMODA-Start_Year*10000)/100)
-  Start_Day<-Start_YEARMODA-Start_Year*10000-Start_Month*100
-  Start_Hour<-12 # This could also be flexible, but let's skip this for now
-  End_Year<-trunc(End_YEARMODA/10000)
-  End_Month<-trunc((End_YEARMODA-End_Year*10000)/100)
-  End_Day<-End_YEARMODA-End_Year*10000-End_Month*100
-  End_Hour<-12 # This could also be flexible, but let's skip this for now
-
-  Start_Date<-which(hourtemps$Year==Start_Year &
-                    hourtemps$Month==Start_Month &
-                    hourtemps$Day==Start_Day &
-                    hourtemps$Hour==Start_Hour)
-  End_Date<-which(hourtemps$Year==End_Year &
-                  hourtemps$Month==End_Month &
-                  hourtemps$Day==End_Day &
-                  hourtemps$Hour==End_Hour)
-
-  Chill_hours<-CH(hourtemps)
+  Start_row<-which(hourtemps$Year==2008 & hourtemps$Month==3 & hourtemps$Day==10 & hourtemps$Hour==0)
+  End_row<-which(hourtemps$Year==2008 & hourtemps$Month==4 & hourtemps$Day==10 & hourtemps$Hour==0)
   
-  return(sum(Chill_hours$Chilling_Hour[Start_Date:End_Date]))
-
+  sum(hourtemps$CH[Start_row:End_row])
 }
 
+CH()
 
-sum_CH(hourtemps,20080401,20081011)
+
+CH <- function(hourtemps,
+               Start_Year,
+               Start_Month,
+               Start_Day,
+               Start_Hour,
+               End_Year,
+               End_Month,
+               End_Day,
+               End_Hour)
+{
+  hourtemps[,"CH"] <- hourtemps$Temp > 0 &  hourtemps$Temp <= 7.2
+  Start_row<-which(hourtemps$Year==Start_Year & hourtemps$Month==Start_Month & hourtemps$Day==Start_Day &
+                     hourtemps$Hour==Start_Hour)
+  End_row<-which(hourtemps$Year==End_Year & hourtemps$Month==End_Month & hourtemps$Day==End_Day &
+                   hourtemps$Hour==End_Hour)
+  
+  sum(hourtemps$CH[Start_row:End_row])
+}
+
+CH(hourtemps,
+   Start_Year=2008,
+   Start_Month=3,
+   Start_Day=20,
+   Start_Hour=0,
+   End_Year=2008,
+   End_Month=5,
+   End_Day=1,
+   End_Hour=12)
+
+CH(hourtemps=Winters_hours_gaps,
+   Start_Year=2008,
+   Start_Month=3,
+   Start_Day=20,
+   Start_Hour=0,
+   End_Year=2008,
+   End_Month=5,
+   End_Day=1,
+   End_Hour=12)
+
+
+#### we only got until here
+# next time we'll still add the temperature check to the function and make the
+# date part a bit more convenient
+
+CH_flex <- function(hourtemps,
+               Start_Year,
+               Start_Month,
+               Start_Day,
+               Start_Hour,
+               End_Year,
+               End_Month,
+               End_Day,
+               End_Hour,
+               lower_threshold=0,
+               upper_threshold=7.2)
+{
+  hourtemps[,"CH"] <- hourtemps$Temp > lower_threshold &  hourtemps$Temp <= upper_threshold
+  Start_row<-which(hourtemps$Year==Start_Year & hourtemps$Month==Start_Month & hourtemps$Day==Start_Day &
+                     hourtemps$Hour==Start_Hour)
+  End_row<-which(hourtemps$Year==End_Year & hourtemps$Month==End_Month & hourtemps$Day==End_Day &
+                   hourtemps$Hour==End_Hour)
+  
+  sum(hourtemps$CH[Start_row:End_row])
+}
+
+CH_flex(hourtemps=Winters_hours_gaps,
+   Start_Year=2008,
+   Start_Month=3,
+   Start_Day=20,
+   Start_Hour=0,
+   End_Year=2008,
+   End_Month=5,
+   End_Day=1,
+   End_Hour=12)
+
+CH_flex(hourtemps=Winters_hours_gaps,
+        Start_Year=2008,
+        Start_Month=3,
+        Start_Day=20,
+        Start_Hour=0,
+        End_Year=2008,
+        End_Month=5,
+        End_Day=1,
+        End_Hour=12,
+        lower_threshold=25,
+        upper_threshold=99)
+
+
+2008032000
+
+head(Winters_hours_gaps)
+
+CH_flex_date <- function(hourtemps,
+                         Start_YEARMODAHO,
+                         End_YEARMODAHO,
+                         lower_threshold=0,
+                         upper_threshold=7.2)
+{
+  hourtemps[,"CH"] <- hourtemps$Temp > lower_threshold &  hourtemps$Temp <= upper_threshold
+  hourtemps[,"YEARMODAHO"]<-hourtemps$Year  * 1000000+
+                            hourtemps$Month *   10000+
+                            hourtemps$Day   *     100+
+                            hourtemps$Hour
+  
+  if(!Start_YEARMODAHO %in% hourtemps[,"YEARMODAHO"]) stop("Start date not in dataset")
+  if(!End_YEARMODAHO %in% hourtemps[,"YEARMODAHO"]) stop("End date not in dataset")
+  
+  Start_row<-which(hourtemps$YEARMODAHO==Start_YEARMODAHO)
+  End_row<-which(hourtemps$YEARMODAHO==End_YEARMODAHO)
+  
+  sum(hourtemps$CH[Start_row:End_row])
+}
+
+CH_flex_date(Winters_hours_gaps,2008031410,2008041006)
+CH_flex_date(Winters_hours_gaps,
+             Start_YEARMODAHO=2008031401,
+             End_YEARMODAHO=20080121006,
+             lower_threshold=25,
+             upper_threshold=99)
 

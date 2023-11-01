@@ -3,41 +3,9 @@ require(ggplot2)
 require(reshape2)
 require(kableExtra)
 
+?daylength
+daylength(51,300)
 
-
-
-
-KA_hours <- KA_weather[10:20, ]
-KA_hours[, "Hour"] <- 0
-KA_hours$Hour[nrow(KA_hours)] <- 23
-KA_hours[, "Temp"] <- 0
-KA_hours <- make_all_day_table(KA_hours, timestep = "hour")
-
-for (i in 2:nrow(KA_hours))
-{
-  if (is.na(KA_hours$Tmin[i]))
-    KA_hours$Tmin[i] <- KA_hours$Tmin[i - 1]
-  if (is.na(KA_hours$Tmax[i]))
-    KA_hours$Tmax[i] <- KA_hours$Tmax[i - 1]
-}
-KA_hours$Temp <- NA
-
-KA_hours$Temp[which(KA_hours$Hour == 6)] <-
-  KA_hours$Tmin[which(KA_hours$Hour == 6)]
-KA_hours$Temp[which(KA_hours$Hour == 18)] <-
-  KA_hours$Tmax[which(KA_hours$Hour == 18)]
-KA_hours$Temp <- interpolate_gaps(KA_hours$Temp)$interp
-
-ggplot(KA_hours[20:100, ], aes(DATE, Temp)) +
-  geom_line(lwd = 1.5) +
-  xlab("Date") +
-  ylab("Temperature (°C)") +
-  theme_bw(base_size = 20)
-
-
-require(chillR)
-require(ggplot2)
-require(reshape2)
 Days <- daylength(latitude = 50.4, JDay = 1:365)
 Days_df <-
   data.frame(
@@ -46,25 +14,40 @@ Days_df <-
     Sunset = Days$Sunset,
     Daylength = Days$Daylength
   )
-Days_df <- melt(Days_df, id = c("JDay"))
+
+plot(Days_df$Sunrise~Days_df$JDay)
+
+ggplot(Days_df, aes(JDay, Sunset)) +
+  geom_line(lwd = 2, col = "red", lty = 2)
+ggplot(Days_df, aes(JDay, Sunrise)) +
+  geom_line(lwd = 2, col = "red", lty = 2)
+ggplot(Days_df, aes(JDay, Daylength)) +
+  geom_line(lwd = 2, col = "red", lty = 2)
+
+library(tidyr)
+
+Days_df <- pivot_longer(Days_df,cols=c(Sunrise:Daylength))
+
 ggplot(Days_df, aes(JDay, value)) +
   geom_line(lwd = 1.5) +
-  facet_grid(cols = vars(variable)) +
+  facet_grid(cols = vars(name)) +
   ylab("Time of Day / Daylength (Hours)") +
-  theme_bw(base_size = 20)
+  theme_bw(base_size = 10) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank())
 
 
-
-kable(KA_weather[1:10,])  %>%
-  kable_styling("striped", position = "left",font_size = 10)
+?stack_hourly_temps
 
 
-KA_hourly <- stack_hourly_temps(KA_weather, latitude = 50.4)
+KA_weather[1:10,]
 
-kable(KA_hourly$hourtemps[100:120, ], row.names = FALSE)  %>%
-  kable_styling("striped", position = "left", font_size = 10)
+
+KA_hourly <- stack_hourly_temps(KA_weather, latitude = 50.4,
+                                keep_sunrise_sunset = TRUE)
+
+KA_hourly$hourtemps[100:120, ]
 # add a plot of hourly temperatures
-
 
 
 KA_hourly$hourtemps[, "DATE"] <-
@@ -79,15 +62,14 @@ ggplot(KA_hourly$hourtemps[20:100, ], aes(DATE, Temp)) +
   geom_line(lwd = 1.5) +
   xlab("Date") +
   ylab("Temperature (°C)") +
-  theme_bw(base_size = 20)
+  theme_bw(base_size = 10)
 
 
 
 empi_curve <- Empirical_daily_temperature_curve(Winters_hours_gaps)
 
 
-kable(empi_curve[1:48, ])  %>%
-  kable_styling("striped", position = "left", font_size = 10)
+empi_curve[1:48, ]
 
 ggplot(data = empi_curve[1:96, ], aes(Hour, Prediction_coefficient)) +
   geom_line(lwd = 1.3, 
@@ -100,10 +82,16 @@ ggplot(data = empi_curve[1:96, ], aes(Hour, Prediction_coefficient)) +
 
 
 coeffs <- Empirical_daily_temperature_curve(Winters_hours_gaps)
+
+day_to_day<-make_all_day_table(
+  KA_weather[c(1:10,20:30),],timestep="day")
+
 Winters_daily <-
   make_all_day_table(Winters_hours_gaps, input_timestep = "hour")
+
 Winters_hours <- Empirical_hourly_temperatures(Winters_daily, coeffs)
 
+## stopping here
 
 
 require(reshape2)

@@ -23,21 +23,27 @@ KAwlong <- KAw %>% pivot_longer(cols=Tmax:Tmin)
 KAwlong
 
 # pivot_wider
-KAwwide <- KAwlong %>% pivot_wider(names_from=name) 
+KAwwide <- KAwlong %>% pivot_wider(names_from=name,values_from=value) 
+KAwwide <- KAwlong %>% pivot_wider() 
 KAwwide
+
+KAw[,c("Year","Month","Day")]
 
 # select
 KAw %>% select(c(Month, Day, Tmax))
+KAw %>% select(c(Month:Tmax))
+KAw %>% select(c(Month:Tmax)) %>% sum()
 
 # filter
-KAw %>% filter(Tmax>10)
+KAw[which(KAw$Tmax>10),]
 
+KAw %>% filter(Tmax>10)
 
 # mutate
 KAw_K <- KAw %>% mutate(Tmax_K = Tmax + 273.15, Tmin_K = Tmin + 273.15)
 KAw_K
 
-KAw_K %>% mutate(Tmin_K = NULL, Tmax_K = NULL)
+KAw_K <- KAw_K %>% mutate(Tmin_K = NULL, Tmax_K = NULL)
 
 KAw %>% mutate(Tmin = Tmin + 273.15, Tmax = Tmax + 273.15)
 
@@ -46,6 +52,8 @@ KAw %>% arrange(Tmax, Tmin)
 
 KAw %>% arrange(desc(Tmax), Tmin)
 
+KA_weather %>% arrange(desc(Tmax), Tmin)
+
 # LOOPS
 # for loops
 
@@ -53,10 +61,12 @@ KAw %>% arrange(desc(Tmax), Tmin)
 for (i in 1:3) print("Hello")
 
 # change variable within loop
-addition <- 1
+#addition <- 1
+
 
 for (i in 1:3)
 {
+  if(i==1) addition<-1
   addition <- addition + 1
   print(addition)
 }
@@ -66,6 +76,7 @@ addition <- 1
 
 for (i in 1:3)
 {
+  if(i==1) addition<-1
   addition <- addition + i
   print(addition)
 }
@@ -84,10 +95,12 @@ for (i in c("Paul", "Mary", "John"))
   print(paste("Hello", i))
 }
 
+
+
 # while loops
 cond <- 5
 
-while (cond>0)
+while (cond<0)
 {
   print(cond)
   cond <- cond - 1
@@ -95,14 +108,17 @@ while (cond>0)
 
 # the apply function family
 
-func <- function(x)
-  x + 1
+func <- function(x)  x + 1
 
-sapply(1:5, func)
+1:5
 
+sa<-sapply(1:5, func)
 
+for (i in 1:1000000) print(i + 1)
 
-sapply(list(1:5), func)
+sapply(1:1000000, func)
+
+sa<-sapply(list(1:5), func)
 
 
 
@@ -110,7 +126,7 @@ lapply(1:5, func)
 
 
 
-lapply(list(1:5), func)
+la<-lapply(list(1:5), func)
 
 
 
@@ -121,4 +137,7 @@ mat
 apply(mat, MARGIN=1, sum) # adding up all the data in each row
 
 apply(mat, MARGIN=2, sum) # adding up all the data in each column
+
+apply(mat, MARGIN=2, mean)
+
 
