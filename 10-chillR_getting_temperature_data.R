@@ -35,4 +35,4 @@ write.csv(cleaned_weather[[1]],"data/Bonn_chillR_weather.csv",row.names=FALSE)
 handle_dwd("list_stations",
            location=c(7.10,50.73))
 
-
+fix_weather(cleaned_weather[[1]])
