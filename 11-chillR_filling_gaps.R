@@ -51,7 +51,10 @@ ggplot(data=fixed_gaps,
   geom_line(lwd=1.3) +
   xlab("Date") +
   ylab("Daily minimum temperature (°C)") +
-  geom_line(data=fixed_gaps,aes(DATE,Tmin),col="red",lwd=1.3)
+  geom_line(data=fixed_gaps,
+            aes(DATE,Tmin),
+            col="red",
+            lwd=1.3)
 
 fixed_gaps[,"error"] <- abs(fixed_gaps$Tmin - fixed_gaps$Tmin_observed)
 
@@ -61,15 +64,14 @@ ggplot(data=fixed_gaps,
   xlab("Date") +
   ylab("Error introduced by interpolation (°C)") +
   geom_point(data=fixed_gaps[which(!fixed_gaps$no_Tmin),],
-             aes(DATE,error),col="red",cex=3)
+             aes(DATE,error),
+             col="red",
+             cex=3)
 
 
 Bonn <- read.csv("data/Bonn_chillR_weather.csv")
 
 Bonn_QC <- fix_weather(Bonn)$QC
-
-Bonn_QC
-
 
 Bonn_QC
 
@@ -86,6 +88,7 @@ patch_weather<-
                   location = as.character(station_list$chillR_code[c(2,3,6)]),
                   time_interval = c(1990,2020)) %>%
   handle_gsod()
+
 
 
 patched <- patch_daily_temperatures(weather = Bonn,
@@ -114,7 +117,6 @@ post_patch_stats <- fix_weather(patched)$QC
 
 post_patch_stats
 
-post_patch_stats <- fix_weather(patched)$QC
 
 
 Bonn_weather<-fix_weather(patched)
@@ -140,7 +142,9 @@ patched_2weeks <- patch_daily_temps(weather = Bonn,
                                     time_interval = "2 weeks")
 
 
-Gaps <- sample(seq(1:nrow(Bonn)), size = 5000, replace = FALSE)
+Gaps <- sample(seq(1:nrow(Bonn)),
+               size = 5000,
+               replace = FALSE)
 
 Bonn_gaps <- Bonn %>% mutate(obs_Tmin=Tmin,
                              obs_Tmax=Tmax)
@@ -204,7 +208,7 @@ error_eval <-
 
 error_eval
 
-
+#### this is where we left off
 
 
 monthly_bias_fixed <- fix_weather(patched_monthly)
@@ -227,7 +231,7 @@ ggplot(data = Winters_hours_gaps[50:300,],
   geom_line(data = Winters_hours_gaps[50:300,],
             aes(DATE,interpolated),
             col = "red",lwd = 1.3) +
-  theme_bw(base_size = 20)  
+  theme_bw(base_size = 10)  
 
 
 # stations <- handle_cimis("list_stations",
