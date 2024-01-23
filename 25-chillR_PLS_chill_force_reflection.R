@@ -8,7 +8,7 @@ latitude <- 50
 
 
 weather <- make_all_day_table(
-            data.frame(Year = c(2001, 2002),
+            data.frame(Year = c(2001, 2001),
                        Month = c(mon, mon),
                        Day = c(1, ndays),
                        Tmin = c(0, 0),
@@ -22,7 +22,7 @@ hourly_temps <- stack_hourly_temps(weather,
 CPs <- Dynamic_Model(
      hourly_temps$hourtemps$Temp)
 
-daily_CPs <- CPs[length(CPs)] / nrow(weather)
+daily_CPs <- tail(CPs, 1) / nrow(weather)
 
 daily_CPs
 
@@ -42,6 +42,7 @@ CP <- NA
 month <- NA
 temp_model <- Dynamic_Model
 
+
 for(mon in month_range)
     {days_month <- as.numeric(
       difftime( ISOdate(2002,
@@ -54,7 +55,7 @@ for(mon in month_range)
     if(mon == 12) days_month <- 31
 
     weather <- make_all_day_table(
-                data.frame(Year = c(2001, 2002),
+                data.frame(Year = c(2001, 2001),
                            Month = c(mon, mon),
                            Day = c(1, days_month),
                            Tmin = c(0, 0),
@@ -71,9 +72,9 @@ for(mon in month_range)
             pluck("hourtemps", "Temp")
 
           CP <- c(CP,
-                  do.call(Dynamic_Model,
-                          list(hourtemps))[length(hourtemps)]/
-                                (length(hourtemps)/24))
+                  tail(do.call(temp_model,
+                          list(hourtemps)), 1) /
+                    days_month)
           mins <- c(mins, tmin)
           maxs <- c(maxs, tmax)
           month <- c(month, mon)
@@ -96,16 +97,6 @@ write.csv(results,
 head(results)
 
 results <- read.csv("data/model_sensitivity_development.csv")
-
-month_range <- c(10, 11, 12, 1, 2, 3)
-
-latitude <- 50.6
-
-month_range <- c(10, 11, 12, 1, 2, 3)
-
-Tmins <- c(-20:20)
-Tmaxs <- c(-15:30)
-
 
 
 
@@ -196,7 +187,7 @@ Chill_model_sensitivity<-
                                    1) ))
     if(mon == 12) days_month <- 31
     weather <- 
-      make_all_day_table(data.frame(Year = c(2001, 2002),
+      make_all_day_table(data.frame(Year = c(2001, 2001),
                                     Month = c(mon, mon),
                                     Day = c(1, days_month),
                                     Tmin = c(0, 0),
@@ -218,9 +209,9 @@ Chill_model_sensitivity<-
           for(tm in 1:length(temp_models))
             metrics[[tm]] <- 
               c(metrics[[tm]],
-                do.call(temp_models[[tm]],
-                        list(hourtemps))[length(hourtemps)]/
-                              (length(hourtemps)/24))
+                tail(do.call(temp_models[[tm]],
+                        list(hourtemps)),1)/
+                  days_month)
           
           mins <- c(mins, tmin)
           maxs <- c(maxs, tmax)

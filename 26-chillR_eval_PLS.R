@@ -341,10 +341,14 @@ ggplot(data = heat,
 chill_requirement <- mean(chill$Chill_Portions)
 chill_req_error <- sd(chill$Chill_Portions)
 
+chill_nonpara <- quantile(chill$Chill_Portions,
+                          c(0.05, 0.5, 0.95))
+
 heat_requirement <- mean(heat$GDH)
 heat_req_error <- sd(heat$GDH)
 
-
+heat_nonpara <- quantile(heat$GDH,
+                          c(0.05, 0.5, 0.95))
 
 chill_phase <- c(317, 62)
 heat_phase <- c(360, 106) # note that the end date here was rounded
