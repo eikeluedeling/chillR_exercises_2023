@@ -1,7 +1,7 @@
 library(chillR)
 library(leaflet)
 library(dplyr)
-library(reshape2)
+#library(reshape2)
 library(kableExtra)
 library(ggplot2)
 library(Kendall)
@@ -65,9 +65,12 @@ ggplot(data = Alexander_Lucas,
   ylab("Julian date (day of the year)") +
   geom_smooth(method = "lm")
 
-ggplot(data=Alexander_Lucas,aes(Pheno_year,JDay,col=variable)) +
+ggplot(data = Alexander_Lucas,
+       aes(Pheno_year,
+           JDay,
+           col = variable)) +
   geom_smooth() +
-  theme_bw(base_size=15) +
+  theme_bw(base_size = 15) +
   scale_color_discrete(
     name = "Phenological event",
     labels = c("First bloom", "Full bloom", "Last bloom")) +
@@ -177,7 +180,8 @@ frost_model_no_summ <-
                          frost_df,
                          summ=FALSE)
 
-hourly$hourtemps[, "frost"] <- frost_model_no_summ(hourly$hourtemps$Temp)
+hourly$hourtemps[, 
+                 "frost"] <- frost_model_no_summ(hourly$hourtemps$Temp)
 
 Daily_frost_hours <- aggregate(hourly$hourtemps$frost,
                                by = list(hourly$hourtemps$YEARMODA),
@@ -259,8 +263,11 @@ ggplot(data = Alexander_Lucas,
 
 Ribbon_Lucas <-
   Alexander_Lucas %>%
-  select(Pheno_year, variable, JDay) %>%
-  pivot_wider(names_from = "variable", values_from = "JDay")
+  select(Pheno_year,
+         variable, 
+         JDay) %>%
+  pivot_wider(names_from = "variable",
+              values_from = "JDay")
 
 
 ggplot(data = Ribbon_Lucas,
@@ -330,7 +337,7 @@ ggplot(data = Ribbon_Lucas,
                  size = Frost_hours,
                  col = Bloom_frost),
              alpha = 0.8) + 
-  scale_size(range = c(0, 5),
+  scale_size(range = c(1, 6),
              breaks = c(1, 5, 10, 15, 20),
              labels = c("1", "5", "10", "15", "20"),
              name = "Frost hours") +

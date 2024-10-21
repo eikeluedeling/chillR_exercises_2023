@@ -1,23 +1,34 @@
-library(ggplot2)
-library(tidyr)
+library(tidyverse)
 library(chillR)
 
+Alex_par <- read_tab("data/PhenoFlex_parameters_Alexander_Lucas.csv")[,2]
+
+E0 <- Alex_par[5]
+E1 <- Alex_par[6]
+A0 <- Alex_par[7]
+A1 <- Alex_par[8]
+Tf <- Alex_par[9]
+slope <- Alex_par[12]
 
 apply_const_temp <-
-  function(temp, A0, A1, E0, E1, Tf, slope, portions = 1200, deg_celsius = TRUE)
-    {
-  temp_vector <- rep(temp,
-                     times = portions)
-  res <- chillR::DynModel_driver(temp = temp_vector,
-                                 A0 = A0,
-                                 A1 = A1,
-                                 E0 = E0,
-                                 E1 = E1,
-                                 Tf = Tf,
-                                 slope = slope,
-                                 deg_celsius = deg_celsius)
-  return(res$y[length(res$y)])
-}
+  function(temp, 
+           A0, A1, E0, E1, Tf, 
+           slope, portions = 1200, deg_celsius = TRUE) {
+    temp_vector <- rep(temp,
+                       times = portions)
+    res <- chillR::DynModel_driver(temp = temp_vector,
+                                   A0 = A0,
+                                   A1 = A1,
+                                   E0 = E0,
+                                   E1 = E1,
+                                   Tf = Tf,
+                                   slope = slope,
+                                   deg_celsius = deg_celsius)
+    return(res$y[length(res$y)])
+  }
+
+apply_const_temp(4, A0, A1, E0, E1, Tf, 
+                 slope)
 
 gen_bell <- function(par,
                      temp_values = seq(-5, 20, 0.1)) {
@@ -41,29 +52,36 @@ gen_bell <- function(par,
   return(invisible(y))
 }
 
-GDH_response <- function(T, par)
-  {Tb <- par[11]
-   Tu <- par[4]
-   Tc <- par[10]
-   GDH_weight <- rep(0, length(T))
-   GDH_weight[which(T >= Tb & T <= Tu)] <-
-     1/2 * (1 + cos(pi + pi * (T[which(T >= Tb & T <= Tu)] - Tb)/(Tu - Tb)))
-   GDH_weight[which(T > Tu & T <= Tc)] <-
-     (1 + cos(pi/2 + pi/2 * (T[which(T >  Tu & T <= Tc)] -Tu)/(Tc - Tu)))
+temp_values = seq(-5, 30, 0.1)
+
+bell <- gen_bell(Alex_par,
+                 temp_values)
+
+plot(bell)
+
+GDH_response <- function(T, par) {
+  Tb <- par[11]
+  Tu <- par[4]
+  Tc <- par[10]
+  GDH_weight <- rep(0, length(T))
+  GDH_weight[which(T >= Tb & T <= Tu)] <-
+    1/2 * (1 + cos(pi + pi * (T[which(T >= Tb & T <= Tu)] - Tb)/(Tu - Tb)))
+  GDH_weight[which(T > Tu & T <= Tc)] <-
+    (1 + cos(pi/2 + pi/2 * (T[which(T >  Tu & T <= Tc)] -Tu)/(Tc - Tu)))
   return(GDH_weight)
 }
 
 
 
-Alex_par <- read_tab("data/PhenoFlex_parameters_Alexander_Lucas.csv")[,2]
 
 temp_values = seq(-5, 30, 0.1)
 
-temp_response <- data.frame(Temperature = temp_values,
-                            Chill_response = gen_bell(Alex_par,
-                                                      temp_values),
-                            Heat_response = GDH_response(temp_values,
-                                                         Alex_par))
+temp_response <- 
+  data.frame(Temperature = temp_values,
+             Chill_response = gen_bell(Alex_par,
+                                       temp_values),
+             Heat_response = GDH_response(temp_values,
+                                          Alex_par))
 
 pivoted_response <- pivot_longer(temp_response, 
                                  c(Chill_response,
@@ -134,14 +152,15 @@ for(mon in month_range)
                          Tf = simulation_par[9],
                          slope = simulation_par[12],
                          deg_celsius = TRUE,
-                         basic_output = FALSE)$y[length(hourtemps)] /
-                                            (length(hourtemps) / 24))
+                         basic_output = FALSE)$y %>% 
+                 tail(1) / days_month)
 
           heat_eff <-
             c(heat_eff,
               cumsum(GDH_response(hourtemps,
-                                  simulation_par))[length(hourtemps)] /
-                                                 (length(hourtemps) / 24))
+                                  simulation_par)) %>%
+                tail(1) / days_month)
+              
           mins <- c(mins, tmin)
           maxs <- c(maxs, tmax)
           month <- c(month, mon)
@@ -167,61 +186,61 @@ Chill_sensitivity_temps <-
            month_range = c(10, 11, 12, 1, 2, 3),
            Tmins = c(-10:20),
            Tmaxs = c(-5:30),
-           legend_label = "Chill/day (CP)")
-{
-  library(ggplot2)
-  library(colorRamps)
-
-  cmst <- chill_model_sensitivity_table
-  cmst <- cmst[which(cmst$Month %in% month_range),]
-  cmst$Month_names <- factor(cmst$Month,
-                             levels = month_range,
-                             labels = month.name[month_range])  
-  
-  DM_sensitivity<-
-    ggplot(cmst,
-           aes_string(x = "Tmin",
-                      y = "Tmax",
-                      fill = temp_model)) +
-    geom_tile() +
-    scale_fill_gradientn(colours = alpha(matlab.like(15),
-                                         alpha = .5),
-                         name = legend_label) +
-    xlim(Tmins[1],
-         Tmins[length(Tmins)]) +
-    ylim(Tmaxs[1],
-         Tmaxs[length(Tmaxs)])
-  
-  temperatures<-
-    temperatures[which(temperatures$Month %in% month_range),]
-  
-  temperatures[which(temperatures$Tmax < temperatures$Tmin),
-               c("Tmax", 
-                 "Tmin")] <- NA
-  
-  temperatures$Month_names <-
-    factor(temperatures$Month,
-           levels = month_range,
-           labels = month.name[month_range])  
-  
-  DM_sensitivity +
-    geom_point(data = temperatures,
-               aes(x = Tmin,
-                   y = Tmax,
-                   fill = NULL,
-                   color = "Temperature"),
-               size = 0.2) +
-    facet_wrap(vars(Month_names)) +
-    scale_color_manual(values = "black",
-                       labels = "Daily temperature \nextremes (°C)",
-                       name = "Observed at site" ) +
-    guides(fill = guide_colorbar(order = 1),
-           color = guide_legend(order = 2)) +
-    ylab("Tmax (°C)") +
-    xlab("Tmin (°C)") + 
-    theme_bw(base_size = 15)
-
-}
+           legend_label = "Chill/day (CP)") {
+    
+    library(ggplot2)
+    library(colorRamps)
+    
+    cmst <- chill_model_sensitivity_table
+    cmst <- cmst[which(cmst$Month %in% month_range),]
+    cmst$Month_names <- factor(cmst$Month,
+                               levels = month_range,
+                               labels = month.name[month_range])  
+    
+    DM_sensitivity<-
+      ggplot(cmst,
+             aes_string(x = "Tmin",
+                        y = "Tmax",
+                        fill = temp_model)) +
+      geom_tile() +
+      scale_fill_gradientn(colours = alpha(matlab.like(15),
+                                           alpha = .5),
+                           name = legend_label) +
+      xlim(Tmins[1],
+           Tmins[length(Tmins)]) +
+      ylim(Tmaxs[1],
+           Tmaxs[length(Tmaxs)])
+    
+    temperatures<-
+      temperatures[which(temperatures$Month %in% month_range),]
+    
+    temperatures[which(temperatures$Tmax < temperatures$Tmin),
+                 c("Tmax", 
+                   "Tmin")] <- NA
+    
+    temperatures$Month_names <-
+      factor(temperatures$Month,
+             levels = month_range,
+             labels = month.name[month_range])  
+    
+    DM_sensitivity +
+      geom_point(data = temperatures,
+                 aes(x = Tmin,
+                     y = Tmax,
+                     fill = NULL,
+                     color = "Temperature"),
+                 size = 0.2) +
+      facet_wrap(vars(Month_names)) +
+      scale_color_manual(values = "black",
+                         labels = "Daily temperature \nextremes (°C)",
+                         name = "Observed at site" ) +
+      guides(fill = guide_colorbar(order = 1),
+             color = guide_legend(order = 2)) +
+      ylab("Tmax (°C)") +
+      xlab("Tmin (°C)") + 
+      theme_bw(base_size = 15)
+    
+    }
   
 
 
